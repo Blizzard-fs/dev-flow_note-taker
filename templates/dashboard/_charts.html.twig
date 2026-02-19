@@ -1,0 +1,92 @@
+{# templates/dashboard/_charts.html.twig
+   Expected variables:
+     - weeklyBars: array of {
+           day:    string   (e.g. "Mon"),
+           height: int      (0–100, percentage),
+           count:  int      (tooltip value),
+           active: bool     (highlights the tallest / current day),
+       }
+     - activityLog: {
+           totalHours: string  (e.g. "89h"),
+       }
+#}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    {# ── Bar Chart: Notes per Week ── #}
+    <div class="lg:col-span-2 bg-surface-dark border border-slate-700/50 rounded-xl p-6 shadow-lg">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h3 class="text-lg font-bold text-white">Notes per Week</h3>
+                <p class="text-sm text-slate-400">Productivity overview (Last 7 Days)</p>
+            </div>
+            <button class="text-primary hover:text-primary-dark text-sm font-medium">View Report</button>
+        </div>
+
+        <div class="h-64 flex items-end justify-between gap-2 sm:gap-4 px-2">
+            {% for bar in weeklyBars %}
+                <div class="flex flex-col items-center gap-2 group flex-1">
+                    <div class="relative w-full bg-slate-800 rounded-t-sm h-full flex items-end group-hover:bg-slate-700/50 transition-colors">
+                        <div class="w-full rounded-t-sm relative transition-all duration-500
+                                    {{ bar.active
+                                        ? 'bg-primary shadow-[0_0_10px_rgba(19,91,236,0.4)]'
+                                        : 'bg-primary/40 group-hover:bg-primary/60' }}"
+                             style="height: {{ bar.height }}%;">
+                            {# Tooltip (always rendered, shown on hover via group) #}
+                            <div class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-xs py-1 px-2 rounded border border-slate-700 transition-opacity whitespace-nowrap z-10">
+                                {{ bar.count }} Notes
+                            </div>
+                        </div>
+                    </div>
+                    <span class="text-xs {{ bar.active ? 'font-bold text-slate-100' : 'font-medium text-slate-500' }}">
+                        {{ bar.day }}
+                    </span>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {# ── Activity Log ── #}
+    <div class="bg-surface-dark border border-slate-700/50 rounded-xl p-6 shadow-lg flex flex-col">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h3 class="text-lg font-bold text-white">Activity Log</h3>
+                <p class="text-sm text-slate-400">
+                    Total Hours: <span class="text-white font-semibold">{{ activityLog.totalHours }}</span>
+                </p>
+            </div>
+            <div class="bg-slate-800 rounded-lg p-1 flex">
+                <button class="px-2 py-1 text-xs text-white bg-slate-700 rounded shadow">30d</button>
+                <button class="px-2 py-1 text-xs text-slate-400 hover:text-white">7d</button>
+            </div>
+        </div>
+
+        <div class="flex-1 w-full h-full min-h-[200px] relative flex items-end">
+            <svg class="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 50">
+                <defs>
+                    <linearGradient id="gradientActivity" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%"   stop-color="#8b5cf6" stop-opacity="0.5"/>
+                        <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                <path d="M0,50 L0,30 C10,35 20,10 30,20 C40,30 50,40 60,15 C70,5 80,25 90,35 L100,20 L100,50 Z"
+                      fill="url(#gradientActivity)"/>
+                <path d="M0,30 C10,35 20,10 30,20 C40,30 50,40 60,15 C70,5 80,25 90,35 L100,20"
+                      fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round"
+                      filter="drop-shadow(0 0 4px rgba(139,92,246,0.5))"
+                      vector-effect="non-scaling-stroke"/>
+                <circle cx="30" cy="20" r="1.5" fill="#fff"/>
+                <circle cx="60" cy="15" r="1.5" fill="#fff"/>
+                <circle cx="90" cy="35" r="1.5" fill="#fff"/>
+            </svg>
+        </div>
+
+        <div class="flex justify-between text-xs text-slate-500 mt-2 px-1">
+            <span>Week 1</span>
+            <span>Week 2</span>
+            <span>Week 3</span>
+            <span>Week 4</span>
+        </div>
+    </div>
+
+</div>

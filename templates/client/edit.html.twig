@@ -1,0 +1,17 @@
+{# templates/client/edit.html.twig
+   Variables: client, form  + layout vars.
+   When fetched via AJAX (X-Requested-With header), renders ONLY the form partial
+   so the modal JS can inject it into #modal-form-container.
+   On direct page load, renders the full index layout with the modal open.
+#}
+{% if app.request.xmlHttpRequest %}
+    {# AJAX response — just the form HTML #}
+    {% include 'client/_form.html.twig' with { form: form, button_label: 'Save Changes' } %}
+{% else %}
+    {# Full-page fallback (direct URL visit or JS disabled) #}
+    {% extends 'client/index.html.twig' %}
+    {% block javascripts %}
+        {{ parent() }}
+        <script>openClientModal({{ client.id }});</script>
+    {% endblock %}
+{% endif %}

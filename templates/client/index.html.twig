@@ -1,0 +1,171 @@
+{# templates/client/index.html.twig
+   Variables: clients (Client[]), form (for new), appName, appVersion, user, notesCount, projects
+   Client entity assumed fields: id, name, description, initials, avatarColor, avatarUrl (optional),
+                                  notesCount (int), totalHours (string)
+#}
+{% extends 'base.html.twig' %}
+{% block title %}Clients — {{ appName }}{% endblock %}
+
+{% block body %}
+    {% include 'partials/_sidebar.html.twig' with {
+        appName:      appName,
+        appVersion:   appVersion,
+        currentRoute: app.request.attributes.get('_route'),
+        notesCount:   notesCount ?? 0,
+        projects:     projects ?? [],
+        user:         user,
+    } %}
+
+    <main class="flex-1 flex flex-col overflow-hidden relative">
+        <div class="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none z-0"></div>
+
+        {# Header #}
+        <header class="flex-none px-8 py-6 z-10">
+            <nav class="flex items-center gap-2 text-sm text-slate-400 mb-2">
+                <a class="hover:text-primary transition-colors" href="{{ path('dashboard') }}">Dashboard</a>
+                <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                <span class="text-slate-100 font-medium">Clients</span>
+            </nav>
+            <div class="flex items-end justify-between gap-4">
+                <div>
+                    <h2 class="text-3xl font-bold text-white tracking-tight">Clients</h2>
+                    <p class="text-slate-400 mt-1">{{ clients|length }} client{{ clients|length != 1 ? 's' }} in your workspace.</p>
+                </div>
+                <button onclick="openClientModal()"
+                        class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-dark text-white text-sm font-bold shadow-lg shadow-blue-500/20 transition-all">
+                    <span class="material-symbols-outlined text-[18px]">person_add</span> New Client
+                </button>
+            </div>
+        </header>
+
+        {# Client grid #}
+        <section class="flex-1 px-8 pb-8 overflow-y-auto z-10">
+            {% if clients|length > 0 %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {% for client in clients %}
+                        <div class="group bg-surface-dark border border-slate-700/50 rounded-xl p-5 hover:border-primary/40 transition-all shadow-lg relative">
+                            {# Avatar #}
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="size-12 rounded-xl flex items-center justify-center text-sm font-bold text-white shrink-0 overflow-hidden"
+                                     style="background: {{ client.avatarColor ?? 'linear-gradient(135deg,#3b82f6,#1d4ed8)' }}">
+                                    {% if client.avatarUrl is defined and client.avatarUrl %}
+                                        <img src="{{ client.avatarUrl }}" alt="{{ client.name }}" class="w-full h-full object-cover"/>
+                                    {% else %}
+                                        {{ client.initials ?? client.name|slice(0,2)|upper }}
+                                    {% endif %}
+                                </div>
+                                <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onclick="openClientModal({{ client.id }})"
+                                            class="p-1.5 rounded-md hover:bg-slate-700 text-slate-400 hover:text-primary transition-colors"
+                                            title="Edit client">
+                                        <span class="material-symbols-outlined text-[18px]">edit</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {# Info #}
+                            <h3 class="text-base font-semibold text-white mb-1">{{ client.name }}</h3>
+                            <p class="text-xs text-slate-400 mb-4 line-clamp-2">{{ client.description ?? 'No description.' }}</p>
+
+                            {# Stats #}
+                            <div class="grid grid-cols-2 gap-2 mb-4">
+                                <div class="bg-slate-800/50 rounded-lg p-2.5 text-center">
+                                    <p class="text-xs text-slate-500 mb-0.5">Notes</p>
+                                    <p class="text-sm font-bold text-white">{{ client.notes is defined ? client.notes|length : 0 }}</p>
+                                </div>
+                                <div class="bg-slate-800/50 rounded-lg p-2.5 text-center">
+                                    <p class="text-xs text-slate-500 mb-0.5">Hours</p>
+                                    <p class="text-sm font-bold text-white">{{ client.totalHours ?? '—' }}</p>
+                                </div>
+                            </div>
+
+                            {# Footer actions #}
+                            <div class="flex gap-2">
+                                <a href="{{ path('app_client_show', {id: client.id}) }}"
+                                   class="flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-medium border border-slate-700 hover:border-primary/50 text-slate-400 hover:text-primary transition-all">
+                                    <span class="material-symbols-outlined text-[16px]">open_in_new</span> View
+                                </a>
+                                <a href="{{ path('app_note_index') }}?client={{ client.id }}"
+                                   class="flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-medium border border-slate-700 hover:border-slate-500 text-slate-400 hover:text-white transition-all">
+                                    <span class="material-symbols-outlined text-[16px]">description</span> Notes
+                                </a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="flex flex-col items-center justify-center py-24 text-slate-500">
+                    <span class="material-symbols-outlined text-6xl mb-4 opacity-20">groups</span>
+                    <p class="text-base font-medium mb-1">No clients yet</p>
+                    <p class="text-sm mb-5">Add your first client to get started.</p>
+                    <button onclick="openClientModal()"
+                            class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary hover:bg-primary-dark text-white text-sm font-bold transition-all">
+                        <span class="material-symbols-outlined text-[18px]">person_add</span> New Client
+                    </button>
+                </div>
+            {% endif %}
+        </section>
+    </main>
+
+    {# ── Modal overlay ─────────────────────────────────────────────────────── #}
+    <div id="client-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" role="dialog" aria-modal="true">
+        {# Backdrop #}
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeClientModal()"></div>
+
+        {# Panel #}
+        <div class="relative w-full max-w-lg bg-surface-darker border border-slate-700/60 rounded-2xl shadow-2xl overflow-hidden">
+            {# Modal header #}
+            <div class="flex items-center justify-between px-6 py-5 border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-primary">groups</span>
+                    </div>
+                    <div>
+                        <h2 class="text-base font-bold text-white" id="modal-title">New Client</h2>
+                        <p class="text-xs text-slate-400" id="modal-subtitle">Fill in the details below.</p>
+                    </div>
+                </div>
+                <button onclick="closeClientModal()" class="text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-700 transition-colors">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            {# Modal body — always loaded via AJAX #}
+            <div id="modal-form-container" class="px-6 py-6">
+                <div class="flex items-center justify-center py-8 text-slate-500">
+                    <span class="material-symbols-outlined animate-spin mr-2">autorenew</span> Loading…
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        const modal = document.getElementById('client-modal');
+
+        function openClientModal(clientId) {
+            const isNew = !clientId;
+            document.getElementById('modal-title').textContent    = isNew ? 'New Client'    : 'Edit Client';
+            document.getElementById('modal-subtitle').textContent = isNew ? 'Fill in the details below.' : 'Update the client details below.';
+
+            const url = isNew ? '{{ path('app_client_new') }}' : `/client/${clientId}/edit`;
+
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.text())
+                .then(html => {
+                    document.getElementById('modal-form-container').innerHTML = html;
+                    modal.classList.remove('hidden');
+                    document.body.classList.add('overflow-hidden');
+                });
+        }
+
+        function closeClientModal() {
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeClientModal(); });
+    </script>
+{% endblock %}

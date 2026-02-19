@@ -1,0 +1,45 @@
+{# templates/note/edit.html.twig — Variables: note, form, appName, appVersion, user, notesCount, projects #}
+{% extends 'base.html.twig' %}
+{% block title %}Edit: {{ note.title }} — {{ appName }}{% endblock %}
+
+{% block body %}
+    {% include 'partials/_sidebar.html.twig' with {
+        appName:      appName,
+        appVersion:   appVersion,
+        currentRoute: app.request.attributes.get('_route'),
+        notesCount:   notesCount ?? 0,
+        projects:     projects ?? [],
+        user:         user,
+    } %}
+
+    <main class="flex-1 flex flex-col overflow-hidden">
+        <div class="flex-1 overflow-y-auto p-8">
+            <div class="max-w-3xl mx-auto">
+                <nav class="flex items-center gap-2 text-sm text-slate-400 mb-6">
+                    <a class="hover:text-primary transition-colors" href="{{ path('dashboard') }}">Dashboard</a>
+                    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                    <a class="hover:text-primary transition-colors" href="{{ path('app_note_index') }}">Notes</a>
+                    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                    <span class="text-slate-100 truncate max-w-xs">{{ note.title }}</span>
+                </nav>
+
+                <div class="bg-surface-dark border border-slate-700/50 rounded-xl p-8 shadow-xl">
+                    <div class="flex items-start justify-between mb-8">
+                        <div class="flex items-center gap-3">
+                            <div class="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-amber-400">edit</span>
+                            </div>
+                            <div>
+                                <h1 class="text-xl font-bold text-white">Edit Note</h1>
+                                <p class="text-sm text-slate-400">Last modified {{ note.updatedAt ? note.updatedAt|date('M d, Y g:i A', 'Europe/Amsterdam') : 'unknown' }}</p>
+                            </div>
+                        </div>
+                        {# Inline delete — keep away from the Save button to avoid accidents #}
+                        <div class="shrink-0">{{ include('note/_delete_form.html.twig') }}</div>
+                    </div>
+                    {% include 'note/_form.html.twig' with { button_label: 'Save Changes' } %}
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock %}

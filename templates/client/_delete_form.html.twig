@@ -1,0 +1,10 @@
+{# templates/client/_delete_form.html.twig
+   Used both inside the modal and on the client row. Pass {{ client }}. #}
+<form method="post" action="{{ path('app_client_delete', {'id': client.id}) }}"
+      onsubmit="return confirm('Delete client {{ client.name }}? This cannot be undone.');">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ client.id) }}"/>
+    <button type="submit"
+            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-red-500/30 hover:border-red-500/60 bg-red-500/5 hover:bg-red-500/10 text-red-400 text-sm font-medium transition-all">
+        <span class="material-symbols-outlined text-[18px]">delete</span> Delete Client
+    </button>
+</form>

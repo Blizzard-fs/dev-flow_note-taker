@@ -1,0 +1,196 @@
+{# templates/note/index.html.twig
+   Variables: notes (Note[]), appName, appVersion, user, notesCount, projects, environment, notificationCount
+   Note entity assumed fields: id, title, getExcerpt(), client.name, client.initials, client.avatarColor,
+                               updatedAt (DateTime), updatedBy (string), tags (string[])
+#}
+{% extends 'base.html.twig' %}
+{% block title %}Client Notes — {{ appName }}{% endblock %}
+
+{% block body %}
+    {% include 'partials/_sidebar.html.twig' with {
+        appName:      appName,
+        appVersion:   appVersion,
+        currentRoute: app.request.attributes.get('_route'),
+        notesCount:   notesCount,
+        projects:     projects ?? [],
+        user:         user,
+    } %}
+
+    <main class="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+        <div class="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-blue-900/10 to-transparent pointer-events-none z-0"></div>
+
+        {# Header #}
+        <header class="flex-none px-8 py-6 z-10">
+            <div class="flex flex-col gap-1 mb-6">
+                <nav class="flex items-center gap-2 text-sm text-slate-400">
+                    <a class="hover:text-primary transition-colors" href="{{ path('dashboard') }}">Dashboard</a>
+                    <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                    <span class="text-slate-100 font-medium">Client Notes</span>
+                </nav>
+                <div class="flex items-end justify-between gap-4">
+                    <div>
+                        <h2 class="text-3xl font-bold text-white tracking-tight">Client Notes Inventory</h2>
+                        <p class="text-slate-400 mt-1">Manage and review all client documentation and developer logs.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button class="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-700 hover:border-slate-600 bg-surface-dark/50 hover:bg-surface-dark text-slate-300 text-sm font-medium transition-all">
+                            <span class="material-symbols-outlined text-[18px]">download</span> Export
+                        </button>
+                        <a href="{{ path('app_note_new') }}"
+                           class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-dark text-white text-sm font-bold shadow-lg shadow-blue-500/20 transition-all">
+                            <span class="material-symbols-outlined text-[18px]">edit_note</span> Create Note
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {# Filter bar #}
+            <div class="flex flex-wrap items-center gap-3 p-2 rounded-xl bg-surface-dark/40 backdrop-blur-md border border-slate-700/50 shadow-sm">
+                <div class="relative flex-1 min-w-[240px]">
+                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined">search</span>
+                    <input class="w-full h-10 pl-10 pr-4 rounded-lg bg-slate-900/50 border border-slate-700 focus:border-primary focus:ring-1 focus:ring-primary text-sm text-slate-200 placeholder:text-slate-500 transition-all outline-none"
+                           placeholder="Search by title, client, or content…" type="text"/>
+                </div>
+                <div class="h-6 w-px bg-slate-700 mx-1 hidden md:block"></div>
+                <div class="flex items-center gap-2 overflow-x-auto">
+                    <button class="flex items-center gap-2 h-10 px-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 text-slate-300 text-sm font-medium transition-colors whitespace-nowrap group">
+                        <span class="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-white">business</span>
+                        <span>Client</span>
+                        <span class="material-symbols-outlined text-[16px] text-slate-500">expand_more</span>
+                    </button>
+                    <button class="flex items-center gap-2 h-10 px-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 text-slate-300 text-sm font-medium transition-colors whitespace-nowrap group">
+                        <span class="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-white">calendar_month</span>
+                        <span>Date Range</span>
+                        <span class="material-symbols-outlined text-[16px] text-slate-500">expand_more</span>
+                    </button>
+                    <button class="flex items-center gap-2 h-10 px-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 text-slate-300 text-sm font-medium transition-colors whitespace-nowrap group">
+                        <span class="material-symbols-outlined text-[18px] text-slate-400 group-hover:text-white">label</span>
+                        <span>Tags</span>
+                    </button>
+                    <button class="flex items-center justify-center h-10 w-10 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="Clear Filters">
+                        <span class="material-symbols-outlined">filter_alt_off</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        {# Table #}
+        <section class="flex-1 px-8 pb-6 overflow-hidden flex flex-col z-10">
+            <div class="flex-1 rounded-xl border border-slate-800 bg-surface-darker/60 backdrop-blur-sm overflow-hidden flex flex-col shadow-xl">
+
+                {# Table header #}
+                <div class="grid grid-cols-12 gap-4 px-6 py-3 bg-slate-900/80 border-b border-slate-800 text-xs font-semibold text-slate-400 uppercase tracking-wider sticky top-0 z-10">
+                    <div class="col-span-4 flex items-center gap-1 cursor-pointer hover:text-white group">
+                        Note Title <span class="material-symbols-outlined text-[14px] opacity-0 group-hover:opacity-100">arrow_downward</span>
+                    </div>
+                    <div class="col-span-3">Client Name</div>
+                    <div class="col-span-2">Last Modified</div>
+                    <div class="col-span-2">Tags</div>
+                    <div class="col-span-1 flex justify-end">Actions</div>
+                </div>
+
+                {# Rows #}
+                <div class="flex-1 overflow-y-auto">
+                    {% for note in notes %}
+                        <div class="group grid grid-cols-12 gap-4 px-6 py-4 border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors items-center">
+
+                            {# Title + author #}
+                            <div class="col-span-4 flex flex-col justify-center min-w-0">
+                                <a href="{{ path('app_note_show', {id: note.id}) }}"
+                                   class="text-sm font-medium text-slate-100 hover:text-primary transition-colors line-clamp-1">
+                                    {{ note.title }}
+                                </a>
+                                <span class="text-xs text-slate-500 mt-0.5">
+                                    Updated by {{ note.updatedBy ?? 'Unknown' }}
+                                </span>
+                            </div>
+
+                            {# Client avatar + name #}
+                            <div class="col-span-3 flex items-center gap-3">
+                                {% if note.client is not null %}
+                                    {% if note.client.avatarUrl is defined and note.client.avatarUrl %}
+                                        <div class="size-8 rounded-full shrink-0 overflow-hidden">
+                                            <img src="{{ note.client.avatarUrl }}" alt="{{ note.client.name }}" class="w-full h-full object-cover"/>
+                                        </div>
+                                    {% else %}
+                                        <div class="size-8 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
+                                             style="background: {{ note.client.avatarColor ?? 'linear-gradient(135deg,#3b82f6,#1d4ed8)' }}">
+                                            {{ note.client.initials ?? note.client.name|slice(0,2)|upper }}
+                                        </div>
+                                    {% endif %}
+                                    <span class="text-sm text-slate-300 truncate">{{ note.client.name }}</span>
+                                {% else %}
+                                    <span class="text-sm text-slate-500 italic">No client</span>
+                                {% endif %}
+                            </div>
+
+                            {# Date #}
+                            <div class="col-span-2 flex flex-col justify-center">
+                                <span class="text-sm text-slate-300">{{ note.updatedAt ? note.updatedAt|date('M d, Y') : '—' }}</span>
+                                <span class="text-xs text-slate-500">{{ note.updatedAt ? note.updatedAt|date('g:i A') : '' }}</span>
+                            </div>
+
+                            {# Tags #}
+                            <div class="col-span-2 flex flex-wrap gap-1.5">
+                                {% set tagColors = [
+                                    'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+                                    'bg-blue-500/10 text-blue-400 border-blue-500/20',
+                                    'bg-purple-500/10 text-purple-400 border-purple-500/20',
+                                    'bg-amber-500/10 text-amber-400 border-amber-500/20',
+                                    'bg-pink-500/10 text-pink-400 border-pink-500/20',
+                                    'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+                                    'bg-red-500/10 text-red-400 border-red-500/20',
+                                    'bg-slate-700/50 text-slate-400 border-slate-600/30',
+                                ] %}
+                                {% if note.tags is defined %}
+                                    {% for tag in note.tags %}
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border {{ tagColors[loop.index0 % tagColors|length] }}">
+                                            {{ tag }}
+                                        </span>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            {# Actions #}
+                            <div class="col-span-1 flex items-center justify-end gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                                <a href="{{ path('app_note_edit', {id: note.id}) }}"
+                                   class="p-1.5 rounded-md hover:bg-slate-700 text-slate-400 hover:text-primary transition-colors"
+                                   title="Edit note">
+                                    <span class="material-symbols-outlined text-[20px]">edit</span>
+                                </a>
+                                {{ include('note/_delete_form.html.twig') }}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="flex flex-col items-center justify-center py-20 text-slate-500">
+                            <span class="material-symbols-outlined text-5xl mb-3 opacity-30">description</span>
+                            <p class="text-sm font-medium">No notes yet.</p>
+                            <a href="{{ path('app_note_new') }}" class="mt-4 text-primary text-sm hover:underline">Create your first note</a>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {# Pagination footer — wire up KnpPaginatorBundle for real pagination #}
+                <div class="flex items-center justify-between px-6 py-3 bg-slate-900/80 border-t border-slate-800">
+                    <div class="flex items-center gap-2 text-sm text-slate-400">
+                        <span>Showing</span>
+                        <span class="text-white font-medium">{{ notes|length }}</span>
+                        <span>of</span>
+                        <span class="text-white font-medium">{{ notes|length }}</span>
+                        <span>notes</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button class="p-1 rounded hover:bg-slate-800 text-slate-500 hover:text-slate-300 disabled:opacity-30" disabled>
+                            <span class="material-symbols-outlined">chevron_left</span>
+                        </button>
+                        <button class="w-7 h-7 flex items-center justify-center rounded bg-primary text-white text-xs font-medium">1</button>
+                        <button class="p-1 rounded hover:bg-slate-800 text-slate-500 hover:text-slate-300 disabled:opacity-30" disabled>
+                            <span class="material-symbols-outlined">chevron_right</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    </main>
+{% endblock %}

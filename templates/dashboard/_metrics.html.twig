@@ -1,0 +1,71 @@
+{# templates/dashboard/_metrics.html.twig
+   Expected variables:
+     - metrics: array of {
+           label:     string,
+           value:     string,
+           subtext:   string,
+           icon:      string   (Material Symbol name),
+           trend:     'up'|'down'|'flat',
+           trendValue: string  (e.g. "12%"),
+           color:     'primary'|'accent'|'orange',
+       }
+#}
+
+{% set colorMap = {
+    'primary': {
+        border:    'hover:border-primary/50',
+        icon:      'text-primary',
+        bar:       'from-primary',
+    },
+    'accent': {
+        border:    'hover:border-accent/50',
+        icon:      'text-accent',
+        bar:       'from-accent',
+    },
+    'orange': {
+        border:    'hover:border-orange-500/50',
+        icon:      'text-orange-500',
+        bar:       'from-orange-500',
+    },
+} %}
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    {% for metric in metrics %}
+        {% set c = colorMap[metric.color] %}
+        <div class="relative overflow-hidden bg-surface-dark border border-slate-700/50 rounded-xl p-6 shadow-lg group {{ c.border }} transition-colors">
+
+            {# Background icon #}
+            <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <span class="material-symbols-outlined text-6xl {{ c.icon }}">{{ metric.icon }}</span>
+            </div>
+
+            <div class="relative z-10">
+                <p class="text-slate-400 text-sm font-medium mb-1">{{ metric.label }}</p>
+                <div class="flex items-end gap-3">
+                    <h2 class="text-3xl font-bold text-white">{{ metric.value }}</h2>
+
+                    {% if metric.trend == 'up' %}
+                        <span class="flex items-center text-emerald-400 text-sm font-medium bg-emerald-400/10 px-1.5 py-0.5 rounded mb-1">
+                            <span class="material-symbols-outlined text-[14px] mr-0.5">trending_up</span>
+                            {{ metric.trendValue }}
+                        </span>
+                    {% elseif metric.trend == 'down' %}
+                        <span class="flex items-center text-red-400 text-sm font-medium bg-red-400/10 px-1.5 py-0.5 rounded mb-1">
+                            <span class="material-symbols-outlined text-[14px] mr-0.5">trending_down</span>
+                            {{ metric.trendValue }}
+                        </span>
+                    {% else %}
+                        <span class="flex items-center text-slate-400 text-sm font-medium bg-slate-700/30 px-1.5 py-0.5 rounded mb-1">
+                            <span class="material-symbols-outlined text-[14px] mr-0.5">remove</span>
+                            {{ metric.trendValue }}
+                        </span>
+                    {% endif %}
+                </div>
+                <p class="text-slate-500 text-xs mt-2">{{ metric.subtext }}</p>
+            </div>
+
+            {# Bottom colour bar #}
+            <div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r {{ c.bar }} to-transparent"></div>
+        </div>
+    {% endfor %}
+</div>

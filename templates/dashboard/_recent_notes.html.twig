@@ -1,0 +1,66 @@
+{# templates/dashboard/_recent_notes.html.twig
+   Expected variables:
+     - recentNotes: array of {
+           title:    string,
+           excerpt:  string,
+           icon:     string   (Material Symbol name),
+           tag:      string   (badge label),
+           timeAgo:  string   (e.g. "2h ago", "Yesterday"),
+           color:    'indigo'|'orange'|'emerald'|'blue',
+       }
+#}
+
+{% set colorMap = {
+    'indigo':  { bg: 'bg-indigo-500/20',  text: 'text-indigo-400',  badge: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'  },
+    'orange':  { bg: 'bg-orange-500/20',  text: 'text-orange-400',  badge: 'bg-orange-500/10 text-orange-400 border-orange-500/20'  },
+    'emerald': { bg: 'bg-emerald-500/20', text: 'text-emerald-400', badge: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' },
+    'blue':    { bg: 'bg-blue-500/20',    text: 'text-blue-400',    badge: 'bg-blue-500/10 text-blue-400 border-blue-500/20'        },
+} %}
+
+<div class="lg:col-span-2 bg-surface-dark border border-slate-700/50 rounded-xl overflow-hidden shadow-lg">
+
+    <div class="p-6 border-b border-slate-700/50 flex justify-between items-center">
+        <h3 class="text-lg font-bold text-white">Recent Notes</h3>
+        <div class="flex gap-2">
+            <button class="p-1 text-slate-400 hover:text-white rounded hover:bg-slate-700">
+                <span class="material-symbols-outlined text-[20px]">filter_list</span>
+            </button>
+            <button class="p-1 text-slate-400 hover:text-white rounded hover:bg-slate-700">
+                <span class="material-symbols-outlined text-[20px]">more_horiz</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="divide-y divide-slate-800">
+        {% for note in recentNotes %}
+            {% set c = colorMap[note.color] ?? colorMap['blue'] %}
+            <div class="p-4 hover:bg-slate-800/50 transition-colors flex items-center justify-between group cursor-pointer">
+                <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-lg {{ c.bg }} {{ c.text }} flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined">{{ note.icon }}</span>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-semibold text-white group-hover:text-primary transition-colors">
+                            {{ note.title }}
+                        </h4>
+                        <p class="text-xs text-slate-400 mt-0.5 line-clamp-1">{{ note.excerpt }}</p>
+                    </div>
+                </div>
+                <div class="flex flex-col items-end gap-2 shrink-0">
+                    <span class="px-2 py-1 rounded text-xs font-medium border {{ c.badge }}">
+                        {{ note.tag }}
+                    </span>
+                    <span class="text-xs text-slate-500">{{ note.timeAgo }}</span>
+                </div>
+            </div>
+        {% else %}
+            <p class="p-6 text-sm text-slate-500 text-center">No recent notes found.</p>
+        {% endfor %}
+    </div>
+
+    <div class="p-3 bg-slate-800/30 text-center border-t border-slate-800">
+        <a class="text-xs font-medium text-primary hover:text-primary-dark uppercase tracking-wider" href="#">
+            View All Notes
+        </a>
+    </div>
+</div>

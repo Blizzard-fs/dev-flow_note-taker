@@ -1,0 +1,12 @@
+{# templates/client/new.html.twig
+   Renders the clients page with the New Client modal pre-opened.
+   Controller must pass: client, form  AND layout vars (appName, appVersion, user, notesCount, projects)
+   Tip: extract layout vars into a service/trait so all controllers can share them.
+#}
+{% extends 'client/index.html.twig' %}
+
+{# Override: open the modal immediately on page load #}
+{% block javascripts %}
+    {{ parent() }}
+    <script>openClientModal();</script>
+{% endblock %}

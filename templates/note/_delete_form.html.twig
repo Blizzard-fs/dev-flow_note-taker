@@ -1,0 +1,10 @@
+{# templates/note/_delete_form.html.twig — inline delete button used in the notes table #}
+<form method="post" action="{{ path('app_note_delete', {'id': note.id}) }}"
+      onsubmit="return confirm('Delete this note? This cannot be undone.');">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ note.id) }}"/>
+    <button type="submit"
+            class="p-1.5 rounded-md hover:bg-red-500/10 text-slate-400 hover:text-red-400 transition-colors"
+            title="Delete note">
+        <span class="material-symbols-outlined text-[20px]">delete</span>
+    </button>
+</form>
