@@ -14,7 +14,7 @@ trait LayoutTrait
         return [
             'appName'           => 'DevFlow',
             'appVersion'        => 'v2.4.0 Symfony',
-            'environment'       => 'Symfony 6.4 (prod)',
+            'environment'       => 'Symfony 6.4 (dev)',
             'notificationCount' => 0,
             'notesCount'        => 0, // inject NoteRepository and call ->count([])
             'projects'          => [
@@ -23,9 +23,9 @@ trait LayoutTrait
                 ['name' => 'DevOps Tooling',   'color' => 'orange'],
             ],
             'user' => [
-                'name'      => 'Alex Developer',
-                'role'      => 'Senior Engineer',
-                'avatarUrl' => 'https://i.pravatar.cc/150?u=alex',
+                'name'      => 'Blizzard-fs',
+                'role'      => 'Administrator',
+                'avatarUrl' => 'https://i.pravatar.cc/150',
             ],
         ];
     }
